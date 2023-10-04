@@ -102,3 +102,4 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 DJSTRIPE_WEBHOOK_SECRET = "whsec_7bbe630d063547bebf49667d52c896a3845482971b04e4a6bdea891d6b7b818b"  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 DJSTRIPE_USE_NATIVE_JSONFIELD = True  # We recommend setting to True for new installations
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+DJSTRIPE_WEBHOOK_URL = "https://e54d-146-120-212-135.ngrok-free.app"
