@@ -5,10 +5,17 @@ from documents.service.subscription import request_payment_page_url
 from documents.serializers.subscription import SubscriptionSerializer
 
 
-class CreateSubscriptionView(generics.CreateAPIView):
+class CreateCheckoutSessionView(generics.CreateAPIView):
     serializer_class = SubscriptionSerializer
 
-
     def create(self, request, *args, **kwargs):
-        data = request_payment_page_url(request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = request_payment_page_url(serializer.validated_data)
         return Response(data=data)
+
+
+class ConfirmTransactionView(generics.CreateAPIView):
+    def create(self, request, *args, **kwargs):
+        print(request.data)
+        return Response(200)

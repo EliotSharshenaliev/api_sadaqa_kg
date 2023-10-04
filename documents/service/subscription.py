@@ -1,50 +1,64 @@
 import stripe
 from django.conf import settings
-from django.urls import reverse
-from djstripe.models import Price, Customer, Subscription, Product
-from decimal import Decimal
+from djstripe.models import Price, Session
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-def request_payment_page_url(request):
-    user_selected_price = request.data.get("user_selected_price", False)
-    user = request.user
+def create_or_get_price(amout, interval):
+    try:
+        amout = amout * 100
+        price = Price.objects.get(
+            unit_amount=amout,
+            recurring={"interval": interval},
+            product_id="prod_Ol3u6UlmK5FmVj"
+        )
+        return price.id
+    except Price.DoesNotExist:
+        price = stripe.Price.create(
+            unit_amount=amout,
+            currency="kgs",
+            recurring={"interval": interval},
+            product="prod_Ol3u6UlmK5FmVj"
+        )
+        Price.sync_from_stripe_data(price)
+        return price.id
 
-    customer = stripe.Customer.create(
-        description=user,
-        email=user.email
-    )
-    djstripe_customer = Customer.sync_from_stripe_data(customer)
 
-    product = stripe.Product.create(name="Authenication Fee")
+def request_payment_page_url(data):
+    try:
+        user_selected_price = data["user_selected_price"]
+        success_url = data["success_url"]
+        cancel_url = data["cancel_url"]
+        recurring_interval = data["recurring_interval"]
 
-    plan = stripe.Plan.create(
-        amount=Decimal(user_selected_price),
-        currency="KGS",
-        interval="month",
-        product=product.id,
-    )
+        price_id = create_or_get_price(
+            amout=user_selected_price,
+            interval=recurring_interval
+        )
 
-    # create subscription
-    subscription = stripe.Subscription.create(
-        customer=customer.id,
-        items=[
-            {
-                'plan': plan.id,
-            },
-        ],
-        expand=['latest_invoice.payment_intent'],
-    )
-    djstripe_subscription = Subscription.sync_from_stripe_data(subscription)
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                }
+            ],
+            mode='subscription',
+            success_url=success_url + '/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=cancel_url + '/cancel',
+        )
 
-    if not user_selected_price:
+    except Exception as e:
+        print(e)
         return {
-            "type_response": "error",
-            "payment_url": "",
-            "timeout": 0
+            "checkout_url": "",
+            "statuc": "error",
         }
+
+    Session.sync_from_stripe_data(checkout_session)
     return {
-        "data": subscription,
-        "type_response": "success",
-        "payment_url": "google.com",
-        "timeout": 150
+        "checkout_url": checkout_session.url,
+        "statuc": "success"
     }

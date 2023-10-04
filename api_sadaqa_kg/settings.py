@@ -34,6 +34,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ]
+}
+
 ROOT_URLCONF = 'api_sadaqa_kg.urls'
 
 TEMPLATES = [
@@ -76,14 +82,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Bishkek'
 
 USE_I18N = True
 
 USE_TZ = True
 
+# STATIC CONFIG
 STATIC_URL = 'static/'
 # STATIC_ROOT = BASE_DIR / "static"
 
@@ -91,9 +98,10 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-stripe.api_key = "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6"
 
-# Payment
+# STRIPE CONFIG
+
+STRIPE_SECRET_KEY = "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6"
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY",
                                         "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6")
 STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY",
