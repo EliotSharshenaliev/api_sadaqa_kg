@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'catalogs.apps.CatalogsConfig',
     'rest_framework',
-    'djstripe'
+    'djstripe',
 ]
 
 MIDDLEWARE = [
@@ -39,6 +39,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ]
 }
+
 
 ROOT_URLCONF = 'api_sadaqa_kg.urls'
 
@@ -111,3 +112,5 @@ DJSTRIPE_WEBHOOK_SECRET = "whsec_7bbe630d063547bebf49667d52c896a3845482971b04e4a
 DJSTRIPE_USE_NATIVE_JSONFIELD = True  # We recommend setting to True for new installations
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 DJSTRIPE_WEBHOOK_URL = "https://e54d-146-120-212-135.ngrok-free.app"
+
+

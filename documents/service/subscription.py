@@ -1,6 +1,6 @@
 import stripe
 from django.conf import settings
-from djstripe.models import Price, Session
+from djstripe.models import Price, Customer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -21,11 +21,27 @@ def create_or_get_price(amout, interval):
             recurring={"interval": interval},
             product="prod_Ol3u6UlmK5FmVj"
         )
-        Price.sync_from_stripe_data(price)
         return price.id
 
 
-def request_payment_page_url(data):
+def get_or_create_custimer(user):
+    try:
+        return Customer.objects.get(
+            description=user,
+            email=user.email
+        ), False
+    except Customer.DoesNotExist:
+        customer = stripe.Customer.create(
+            description=user,
+            email=user.email
+        )
+        return customer, True
+
+    except Customer.MultipleObjectsReturned as e:
+        return {}, False
+
+
+def request_payment_page_url(data, user):
     try:
         user_selected_price = data["user_selected_price"]
         success_url = data["success_url"]
@@ -37,8 +53,17 @@ def request_payment_page_url(data):
             interval=recurring_interval
         )
 
+        customer, created = get_or_create_custimer(user)
+
+        if not created:
+            return {
+                "checkout_url": "",
+                "statuc": "error",
+            }
+
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
+            customer=customer.id,
             line_items=[
                 {
                     'price': price_id,
@@ -51,13 +76,11 @@ def request_payment_page_url(data):
         )
 
     except Exception as e:
-        print(e)
         return {
             "checkout_url": "",
             "statuc": "error",
         }
 
-    Session.sync_from_stripe_data(checkout_session)
     return {
         "checkout_url": checkout_session.url,
         "statuc": "success"
