@@ -1,8 +1,8 @@
 from djstripe.models import Subscription
-from rest_framework import generics, status, permissions, views
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from documents.serializers.subscription import CreteateSubscriptionSerializer, GetSubscriptionSerializer
-from documents.services.subscription import request_payment_page_url
+from documents.services.subscription import request_payment_page_url, delete_subscribtion
 
 
 class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
@@ -12,7 +12,7 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
         если нет то создается новая подписка на указонную сумму
     """
     serializer_class = CreteateSubscriptionSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -21,7 +21,7 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
         try:
             Subscription.objects.get(customer_id=user.stripe_id)
             data = {
-                "message": "User has subscribed already",
+                "message": "Пользователь уже подписан!",
                 "checkout_url": "",
                 "statuc": "error",
             }
@@ -42,4 +42,27 @@ class GetSubscriptionView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return Subscription.objects.get(customer_id=self.request.user.stripe_id)
+        try:
+            return Subscription.objects.get(customer_id=self.request.user.stripe_id)
+        except Subscription.DoesNotExist:
+            return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance:
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        return Response({})
+
+
+class SubscriptionDeleteView(generics.DestroyAPIView):
+    queryset = Subscription.objects.all()
+    serializer_class = Subscription
+    permission_classes = [permissions.IsAuthenticated]
+
+
+    def perform_destroy(self, instance):
+        delete_subscribtion(instance.id)
+        instance.delete()
+
+
