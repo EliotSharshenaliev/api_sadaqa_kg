@@ -1,6 +1,6 @@
 import stripe
 from django.conf import settings
-from djstripe.models import Price, Customer
+from djstripe.models import Price, Customer, Subscription, Session
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -21,6 +21,7 @@ def create_or_get_price(amout, interval):
             recurring={"interval": interval},
             product="prod_Ol3u6UlmK5FmVj"
         )
+        Price.sync_from_stripe_data(price)
         return price.id
 
 
@@ -35,6 +36,7 @@ def get_or_create_custimer(user):
             description=user,
             email=user.email
         )
+        Customer.sync_from_stripe_data(customer)
         return customer, True
 
     except Customer.MultipleObjectsReturned as e:
@@ -61,6 +63,7 @@ def request_payment_page_url(data, user_id):
             success_url=success_url + '/success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=cancel_url + '/cancel',
         )
+        Session.sync_from_stripe_data(checkout_session)
 
     except Exception as e:
         return {
@@ -72,3 +75,10 @@ def request_payment_page_url(data, user_id):
         "checkout_url": checkout_session.url,
         "statuc": "success"
     }
+
+
+def delete_subscribtion(subs_id):
+    response = stripe.Subscription.delete(
+        subs_id,
+    )
+    Subscription.sync_from_stripe_data(response)
