@@ -1,8 +1,19 @@
 from django.urls import path
 
-from documents.views import SubscriptionCheckoutSessionView
-
+from documents.views import (
+    CreateSubscriptionCheckoutSessionView,
+    GetSubscriptionView
+)
 
 urlpatterns = [
-    path(r'subscription-session-checkout/', SubscriptionCheckoutSessionView.as_view(), name='subscription'),
+    path(
+        r'create-subscription/',
+        CreateSubscriptionCheckoutSessionView.as_view(),
+        name='create-subscription'
+    ),
+    path(
+        r'get-subscription/',
+        GetSubscriptionView.as_view(),
+        name='get-subscription'
+    )
 ]

@@ -55,12 +55,7 @@ def request_payment_page_url(data, user_id):
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[
-                {
-                    'price': price_id,
-                    'quantity': 1,
-                }
-            ],
+            line_items=[{'price': price_id, 'quantity': 1, }],
             customer=user_id,
             mode='subscription',
             success_url=success_url + '/success?session_id={CHECKOUT_SESSION_ID}',

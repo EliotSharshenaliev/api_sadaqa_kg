@@ -1,8 +1,9 @@
 from djstripe.enums import PlanInterval
+from djstripe.models import Subscription
 from rest_framework import serializers
 
 
-class SubscriptionSerializer(serializers.Serializer):
+class CreteateSubscriptionSerializer(serializers.Serializer):
     user_selected_price = serializers.IntegerField(
         required=True
     )
@@ -15,3 +16,9 @@ class SubscriptionSerializer(serializers.Serializer):
         max_length=255
     )
     recurring_interval = serializers.ChoiceField(choices=PlanInterval.choices)
+
+
+class GetSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = "__all__"
