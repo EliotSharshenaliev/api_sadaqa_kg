@@ -1,23 +1,28 @@
 from djstripe.models import BalanceTransaction
-from rest_framework import generics, permissions
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-
 from documents.serializers.balance import BalanceTransactionSerializer
-from documents.service.subscription import request_payment_page_url
 from documents.serializers.subscription import SubscriptionSerializer
+from documents.services.subscription import request_payment_page_url
 
 
-class CreateCheckoutSessionView(generics.CreateAPIView):
+class SubscriptionCheckoutSessionView(generics.CreateAPIView):
+    """
+        Запрос для авторированных пользователей.
+        Если пользователя уже имеется подписка то обновляется на нового,
+        если нет то создается новая подписка на указонную сумму
+    """
     serializer_class = SubscriptionSerializer
+    # permissions_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = request_payment_page_url(
-            data=serializer.validated_data,
-            user=request.user
-        )
-        return Response(data=data)
+        # user = request.user
+        if serializer.is_valid():
+            data = request_payment_page_url(data=serializer.validated_data)
+            return Response(data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ConfirmTransactionView(generics.CreateAPIView):

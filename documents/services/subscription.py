@@ -41,7 +41,7 @@ def get_or_create_custimer(user):
         return {}, False
 
 
-def request_payment_page_url(data, user):
+def request_payment_page_url(data):
     try:
         user_selected_price = data["user_selected_price"]
         success_url = data["success_url"]
@@ -53,17 +53,8 @@ def request_payment_page_url(data, user):
             interval=recurring_interval
         )
 
-        customer, created = get_or_create_custimer(user)
-
-        if not created:
-            return {
-                "checkout_url": "",
-                "statuc": "error",
-            }
-
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            customer=customer.id,
             line_items=[
                 {
                     'price': price_id,
