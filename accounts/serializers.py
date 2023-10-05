@@ -24,11 +24,14 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.values("username"))]
     )
+    phone = serializers.CharField(required=True)
+    firstname = serializers.CharField(required=True)
+    lastname = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "password")
+        fields = ("id", "firstname", "lastname", "username", "email", "password", "phone")
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):

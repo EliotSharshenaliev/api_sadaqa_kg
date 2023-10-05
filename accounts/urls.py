@@ -1,10 +1,8 @@
 from django.urls import path
 
-from rest_framework_simplejwt.views import (
-    TokenRefreshView
-)
-
+from rest_framework_simplejwt.views import TokenRefreshView
 from accounts import views
+
 
 urlpatterns = [
     path("register/", views.UserRegisterationAPIView.as_view(), name="create-user"),

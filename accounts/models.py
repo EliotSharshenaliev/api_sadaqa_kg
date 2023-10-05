@@ -1,9 +1,10 @@
+import stripe
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
 from django.db import models
+from djstripe.fields import StripeIdField
 from rest_framework_simplejwt.tokens import RefreshToken
-
 
 class UserManager(BaseUserManager):
     """
@@ -12,7 +13,7 @@ class UserManager(BaseUserManager):
     же самого кода, который Django использовал для создания User (для демонстрации).
     """
 
-    def create_user(self, username, email, password=None):
+    def create_user(self, firstname, lastname, phone, username, email, password=None):
         """ Создает и возвращает пользователя с имэйлом, паролем и именем. """
         if username is None:
             raise TypeError('Users must have a username.')
@@ -22,21 +23,49 @@ class UserManager(BaseUserManager):
 
         user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
-        user.save()
+        user.lastname = lastname
+        user.firstname = firstname
+        user.phone = phone
 
+        stripe_id = self._create_user_stripe(
+            name=firstname+" "+lastname,
+            email=email,
+            phone=phone,
+            username=username
+        )
+
+        if not stripe_id:
+            raise TypeError('Something went wrong. Try register again')
+
+        user.stripe_id = stripe_id
+        user.save()
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, firstname, lastname, phone, username, email, password=None):
         """ Создает и возввращет пользователя с привилегиями суперадмина. """
         if password is None:
             raise TypeError('Superusers must have a password.')
 
-        user = self.create_user(username, email, password)
+        user = self.create_user(firstname, lastname, phone, username, email, password)
         user.is_superuser = True
         user.is_staff = True
         user.save()
 
         return user
+
+    @staticmethod
+    def _create_user_stripe(name, email, phone, username):
+        try:
+            customer = stripe.Customer.create(
+                description=username,
+                name=name,
+                email=email,
+                phone=phone,
+            )
+            return customer.id
+        except Exception as e:
+            print(e)
+        return False
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -46,7 +75,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    firstname = models.CharField(max_length=255, null=True, blank=True)
+    lastname = models.CharField(max_length=255, null=True, blank=True)
+    phone = models.CharField(max_length=255, null=True, blank=True)
 
+    stripe_id = StripeIdField(max_length=500, null=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
@@ -67,12 +100,3 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         """ Аналогично методу get_full_name(). """
         return self.username
-
-
-    def get_tokens_for_user():
-        refresh = RefreshToken.for_user(user)
-
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }

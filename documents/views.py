@@ -14,13 +14,16 @@ class SubscriptionCheckoutSessionView(generics.CreateAPIView):
     """
     serializer_class = SubscriptionSerializer
     # permissions_classes = (permissions.IsAuthenticated, )
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        # user = request.user
+        user = request.user
         if serializer.is_valid():
-            data = request_payment_page_url(data=serializer.validated_data)
+            data = request_payment_page_url(
+                data=serializer.validated_data,
+                user_id=user.stripe_id
+            )
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

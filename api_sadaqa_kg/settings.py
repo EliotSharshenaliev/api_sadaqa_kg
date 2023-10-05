@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework',
     'djstripe',
+    'webhooks',
     "rest_framework_simplejwt",
     'documents.apps.DocumentsConfig',
     'catalogs.apps.CatalogsConfig',

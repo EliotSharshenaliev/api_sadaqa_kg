@@ -41,7 +41,7 @@ def get_or_create_custimer(user):
         return {}, False
 
 
-def request_payment_page_url(data):
+def request_payment_page_url(data, user_id):
     try:
         user_selected_price = data["user_selected_price"]
         success_url = data["success_url"]
@@ -61,6 +61,7 @@ def request_payment_page_url(data):
                     'quantity': 1,
                 }
             ],
+            customer=user_id,
             mode='subscription',
             success_url=success_url + '/success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=cancel_url + '/cancel',
