@@ -2,7 +2,8 @@ from django.urls import path
 
 from documents.views import (
     CreateSubscriptionCheckoutSessionView,
-    GetSubscriptionView
+    GetSubscriptionView,
+    SubscriptionDeleteView
 )
 
 urlpatterns = [
@@ -15,5 +16,7 @@ urlpatterns = [
         r'get-subscription/',
         GetSubscriptionView.as_view(),
         name='get-subscription'
-    )
+    ),
+    path('users/<int:pk>/delete/', SubscriptionDeleteView.as_view(), name='subscription-delete'),
+
 ]
