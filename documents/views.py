@@ -2,7 +2,7 @@ from djstripe.models import Subscription
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from documents.serializers.subscription import CreteateSubscriptionSerializer, GetSubscriptionSerializer
-from documents.services.subscription import request_payment_page_url, delete_subscribtion
+from documents.services.stripe_gateway import StripeGateway
 
 
 class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
@@ -13,6 +13,7 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
     """
     serializer_class = CreteateSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    stripe_class = StripeGateway()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -28,9 +29,9 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
             return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
         except Subscription.DoesNotExist:
             if serializer.is_valid():
-                data = request_payment_page_url(
+                data = self.stripe_class.request_payment_page_url(
                     data=serializer.validated_data,
-                    user_id=user.stripe_id
+                    user=user
                 )
                 return Response(data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -59,10 +60,8 @@ class SubscriptionDeleteView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = Subscription
     permission_classes = [permissions.IsAuthenticated]
-
+    stripe_class = StripeGateway()
 
     def perform_destroy(self, instance):
-        delete_subscribtion(instance.id)
+        self.stripe_class.delete_subscribtion(instance.id)
         instance.delete()
-
-
