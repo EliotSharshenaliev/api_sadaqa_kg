@@ -1,10 +1,12 @@
 from djstripe.models import Customer, Subscription
-from rest_framework import generics
+from rest_framework import generics, views
 from rest_framework.response import Response
 
 
-class CustomerCreatedWebhookView(generics.CreateAPIView):
-    def create(self, request, *args, **kwargs):
+class CustomerCreatedWebhookView(views.APIView):
+
+    @classmethod
+    def post(cls, request, *args, **kwargs):
         try:
             event = request.data
             if event['type'] == 'customer.created':
@@ -16,8 +18,9 @@ class CustomerCreatedWebhookView(generics.CreateAPIView):
         return Response(200)
 
 
-class SubscriptionCreatedWebhookView(generics.CreateAPIView):
-    def create(self, request, *args, **kwargs):
+class SubscriptionCreatedWebhookView(views.APIView):
+    @classmethod
+    def post(cls, request, *args, **kwargs):
         try:
             event = request.data
             if event['type'] == 'customer.subscription.created':
