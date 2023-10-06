@@ -19,21 +19,12 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         user = request.user
 
-        try:
-            Subscription.objects.get(customer_id=user.stripe_id)
-            data = {
-                "message": "Пользователь уже подписан!",
-                "checkout_url": "",
-                "statuc": "error",
-            }
-            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-        except Subscription.DoesNotExist:
-            if serializer.is_valid():
-                data = self.stripe_class.request_payment_page_url(
-                    data=serializer.validated_data,
-                    user=user
-                )
-                return Response(data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            data = self.stripe_class.request_payment_page_url(
+                data=serializer.validated_data,
+                user=user
+            )
+            return Response(data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
