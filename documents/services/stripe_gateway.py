@@ -49,10 +49,9 @@ class StripeGateway(BaseGateway):
             )
 
             checkout_session = stripe.checkout.Session.create(
-                customer_email=user.email,
+                customer=user.stripe_id,
                 payment_method_types=['card'],
                 line_items=[{'price': price_id, 'quantity': 1, }],
-                customer=user.stripe_id,
                 mode='subscription',
                 success_url=success_url + '/success?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=cancel_url + '/cancel',
