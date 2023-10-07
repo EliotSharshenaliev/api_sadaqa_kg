@@ -6,12 +6,12 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class BaseGateway:
-    instances = {}
+    __instances = {}
 
     def __new__(cls, *args, **kwargs):
-        if cls not in cls.instances:
-            cls.instances[cls] = super(BaseGateway, cls).__new__(cls)
-        return cls.instances[cls]
+        if cls not in cls.__instances:
+            cls.__instances[cls] = super(BaseGateway, cls).__new__(cls)
+        return cls.__instances[cls]
 
 
 class StripeGateway(BaseGateway):
