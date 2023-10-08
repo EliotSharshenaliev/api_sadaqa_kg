@@ -1,8 +1,12 @@
+import logging
+
 import stripe
 from django.conf import settings
-from djstripe.models import Price, Customer, Subscription, Session
+from djstripe.models import Price, Subscription, Session
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+logger = logging.getLogger(__name__)
 
 
 class BaseGateway:
@@ -17,21 +21,21 @@ class BaseGateway:
 class StripeGateway(BaseGateway):
 
     @classmethod
-    def create_or_get_price(cls, amout, interval):
+    def create_or_get_price(cls, amount, interval):
         try:
-            amout = amout * 100
+            amount = amount * 100
             price = Price.objects.get(
-                unit_amount=amout,
+                unit_amount=amount,
                 recurring={"interval": interval},
-                product_id="prod_Ol3u6UlmK5FmVj"
+                product_id="prod_Omc0Igw8EeFM1g"
             )
             return price.id
         except Price.DoesNotExist:
             price = stripe.Price.create(
-                unit_amount=amout,
+                unit_amount=amount,
                 currency="kgs",
                 recurring={"interval": interval},
-                product="prod_Ol3u6UlmK5FmVj"
+                product="prod_Omc0Igw8EeFM1g"
             )
             Price.sync_from_stripe_data(price)
             return price.id
@@ -44,7 +48,7 @@ class StripeGateway(BaseGateway):
             recurring_interval = data["recurring_interval"]
 
             price_id = self.create_or_get_price(
-                amout=user_selected_price,
+                amount=user_selected_price,
                 interval=recurring_interval
             )
 
@@ -59,6 +63,7 @@ class StripeGateway(BaseGateway):
             Session.sync_from_stripe_data(checkout_session)
 
         except Exception as e:
+            logger.error("Error: %s" % e.args)
             return {
                 "checkout_url": "",
                 "statuc": "error",
@@ -70,7 +75,7 @@ class StripeGateway(BaseGateway):
         }
 
     @classmethod
-    def delete_subscribtion(cls, subs_id):
+    def delete_subscription(cls, subs_id):
         response = stripe.Subscription.delete(
             subs_id,
         )
