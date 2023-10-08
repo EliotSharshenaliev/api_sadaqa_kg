@@ -1,9 +1,12 @@
 import os.path
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 
 import stripe
 from django.conf import settings
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -92,16 +95,14 @@ STATICFILES_DIRS = [
 
 # STRIPE CONFIG
 
-STRIPE_SECRET_KEY = "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6"
-STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY",
-                                        "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6")
-STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY",
-                                        "sk_test_51NtvDNBVnhNGgAF1YPjzNqxhHpUb4es5y6m9byyB1qoOTLw9aSD3ERGHvxGqzT6RBET15GgNVqFS4mIjPrWMloT0000G1IobS6")
-STRIPE_LIVE_MODE = False  # Change to True in production
-DJSTRIPE_WEBHOOK_SECRET = "whsec_7bbe630d063547bebf49667d52c896a3845482971b04e4a6bdea891d6b7b818b"  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
-DJSTRIPE_USE_NATIVE_JSONFIELD = True  # We recommend setting to True for new installations
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', "")
+STRIPE_LIVE_SECRET_KEY = os.getenv("STRIPE_LIVE_SECRET_KEY", "")
+STRIPE_TEST_SECRET_KEY = os.getenv("STRIPE_TEST_SECRET_KEY", "")
+STRIPE_LIVE_MODE = False
+DJSTRIPE_WEBHOOK_SECRET = os.getenv("DJSTRIPE_WEBHOOK_SECRET", "")
+DJSTRIPE_USE_NATIVE_JSONFIELD = True
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
-DJSTRIPE_WEBHOOK_URL = "https://e54d-146-120-212-135.ngrok-free.app"
+DJSTRIPE_WEBHOOK_URL = os.getenv("DJSTRIPE_WEBHOOK_URL", "https://127.0.0.1:8000")
 
 # SIMPLE JWT
 
@@ -160,7 +161,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = "accounts.User"
-
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
