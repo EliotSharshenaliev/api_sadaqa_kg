@@ -10,7 +10,7 @@ from accounts import serializers
 User = get_user_model()
 
 
-class UserRegistrationAPIView(GenericAPIView):
+class UserRegisterationAPIView(GenericAPIView):
     """
     An endpoint for the client to create a new User.
     """
