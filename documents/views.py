@@ -54,5 +54,5 @@ class SubscriptionDeleteView(generics.DestroyAPIView):
     stripe_class = StripeGateway()
 
     def perform_destroy(self, instance):
-        self.stripe_class.delete_subscribtion(instance.id)
+        self.stripe_class.delete_subscription(instance.id)
         instance.delete()
