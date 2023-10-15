@@ -5,3 +5,5 @@ djangorestframework-simplejwt==5.3.0
 drf-yasg==1.21.7
 requests==2.31.0
 stripe==4.2.0
+
+python-dotenv~=1.0.0
