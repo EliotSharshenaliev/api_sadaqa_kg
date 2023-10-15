@@ -1,6 +1,7 @@
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -21,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "created_at",
             "stripe_user",
+            "picture_url"
         )
 
 
@@ -37,26 +39,27 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     firstname = serializers.CharField(required=True)
     lastname = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
+    def validate(self, attrs):
+        if attrs["password"] != attrs.pop("confirm_password"):
+            raise serializers.ValidationError("Passwords do not match")
+        return attrs
+
     class Meta:
         model = User
-        fields = ("id", "firstname", "lastname", "username", "email", "password", "phone")
-        extra_kwargs = {"password": {"write_only": True}}
+        fields = ("id", "firstname", "lastname", "username", "email", "password", "confirm_password", "phone")
 
 
-class UserLoginSerializer(serializers.Serializer):
+class UserLoginSerializer(TokenObtainPairSerializer):
     """
-    Serializer class to authenticate users with email and password.
+    Serializer for authenticating users with email and password.
     """
-
-    email = serializers.CharField()
-    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_active:
-            return user
-        raise serializers.ValidationError("Incorrect Credentials")
+        validated_data = super().validate(data)
+        self.user.check_user_in_stripe()
+        return validated_data
