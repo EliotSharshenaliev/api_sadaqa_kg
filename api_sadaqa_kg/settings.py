@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     'documents.apps.DocumentsConfig',
     'catalogs.apps.CatalogsConfig',
+    'stripe_gateway.apps.StripeGatewayConfig'
 ]
 
 MIDDLEWARE = [
@@ -88,10 +89,17 @@ USE_TZ = True
 # STATIC CONFIG
 STATIC_URL = 'static/'
 # STATIC_ROOT = BASE_DIR / "static"
-
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "static"
 ]
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+MEDIA_USER_PROFILE_ROOT = os.path.join(settings.MEDIA_ROOT, "profiles")
+MEDIA_USER_PROFILE_URL = os.path.join(settings.MEDIA_URL, "profiles")
+
+ANONYMOUSE_USER = "/static/images/anonymous_user.png"
 
 # STRIPE CONFIG
 
@@ -138,7 +146,7 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 
-    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "accounts.serializers.UserLoginSerializer",
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
@@ -171,3 +179,7 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+# instagram image api
+
+INSTA_IMAGE_API = "https://www.instagram.com/%s/?__a=1&__d=1"
