@@ -2,43 +2,18 @@ import logging
 
 import stripe
 from django.conf import settings
-from djstripe.models import Price, Subscription, Session
+from djstripe.models import Session
+
+from stripe_gateway.customer import CustomerStripeGateway
+from stripe_gateway.price import PriceStripeGateway
+from stripe_gateway.subscription import SubscriptionStripeGateway
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 logger = logging.getLogger(__name__)
 
 
-class BaseGateway:
-    __instances = {}
-
-    def __new__(cls, *args, **kwargs):
-        if cls not in cls.__instances:
-            cls.__instances[cls] = super(BaseGateway, cls).__new__(cls)
-        return cls.__instances[cls]
-
-
-class StripeGateway(BaseGateway):
-
-    @classmethod
-    def create_or_get_price(cls, amount, interval):
-        try:
-            amount = amount * 100
-            price = Price.objects.get(
-                unit_amount=amount,
-                recurring={"interval": interval},
-                product_id="prod_Omc0Igw8EeFM1g"
-            )
-            return price.id
-        except Price.DoesNotExist:
-            price = stripe.Price.create(
-                unit_amount=amount,
-                currency="kgs",
-                recurring={"interval": interval},
-                product="prod_Omc0Igw8EeFM1g"
-            )
-            Price.sync_from_stripe_data(price)
-            return price.id
+class PaymentStripeGateway(CustomerStripeGateway, SubscriptionStripeGateway, PriceStripeGateway):
 
     def request_payment_page_url(self, data, user):
         try:
@@ -73,10 +48,3 @@ class StripeGateway(BaseGateway):
             "checkout_url": checkout_session.url,
             "statuc": "success"
         }
-
-    @classmethod
-    def delete_subscription(cls, subs_id):
-        response = stripe.Subscription.delete(
-            subs_id,
-        )
-        Subscription.sync_from_stripe_data(response)
