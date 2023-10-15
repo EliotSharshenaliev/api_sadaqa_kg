@@ -2,7 +2,7 @@ from djstripe.models import Subscription
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from documents.serializers.subscription import CreteateSubscriptionSerializer, GetSubscriptionSerializer
-from documents.services.stripe_gateway import StripeGateway
+from stripe_gateway.service import PaymentStripeGateway
 
 
 class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
@@ -13,7 +13,7 @@ class CreateSubscriptionCheckoutSessionView(generics.CreateAPIView):
     """
     serializer_class = CreteateSubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
-    stripe_class = StripeGateway()
+    stripe_class = PaymentStripeGateway
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -51,7 +51,7 @@ class SubscriptionDeleteView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = Subscription
     permission_classes = [permissions.IsAuthenticated]
-    stripe_class = StripeGateway()
+    stripe_class = PaymentStripeGateway
 
     def perform_destroy(self, instance):
         self.stripe_class.delete_subscription(instance.id)
