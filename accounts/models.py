@@ -1,13 +1,21 @@
+import json
 import logging
-import stripe
+import os
+import uuid
+
+import requests
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
 from django.db import models
 from djstripe.fields import StripeIdField
 from djstripe.models import Customer
+
+from stripe_gateway.customer import CustomerStripeGateway
+
 logger = logging.getLogger(__name__)
-from django.conf import settings
+
 
 class UserManager(BaseUserManager):
     """
@@ -38,6 +46,7 @@ class UserManager(BaseUserManager):
         user.lastname = lastname
         user.firstname = firstname
         user.phone = phone
+        user.picture_url = self.get_picture(username)
         user.save()
         return user
 
@@ -58,8 +67,42 @@ class UserManager(BaseUserManager):
         user.save()
         return user
 
+    def get_picture(self, username):
+        url = self.get_source_image(username)
 
-class User(AbstractBaseUser, PermissionsMixin):
+        if url is None:
+            return settings.ANONYMOUSE_USER
+
+        try:
+            response = requests.get(url)
+            name_file = "%s.jpg" % uuid.uuid1()
+            image_location_root = os.path.join(settings.MEDIA_USER_PROFILE_ROOT, name_file)
+            if response.status_code == 200:
+                with open(image_location_root, "wb") as f:
+                    f.write(response.content)
+                return os.path.join(settings.MEDIA_USER_PROFILE_URL, name_file)
+
+            return settings.ANONYMOUSE_USER
+        except requests.exceptions.RequestException as e:
+            logger.error(e)
+            return settings.ANONYMOUSE_USER
+        except Exception as e:
+            logger.error(e)
+            return settings.ANONYMOUSE_USER
+
+    @staticmethod
+    def get_source_image(username):
+        r = requests.get(
+            settings.INSTA_IMAGE_API % username
+        )
+        try:
+            response = json.loads(r.content)
+        except json.decoder.JSONDecodeError:
+            return None
+        return response["graphql"]["user"]["profile_pic_url_hd"]
+
+
+class User(AbstractBaseUser, PermissionsMixin, CustomerStripeGateway):
     username = models.CharField(db_index=True, max_length=255, unique=True)
     email = models.EmailField(db_index=True, unique=True)
     is_active = models.BooleanField(default=True)
@@ -69,6 +112,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     firstname = models.CharField(max_length=255, null=True, blank=True)
     lastname = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=255, null=True, blank=True)
+    picture_url = models.TextField(null=True, blank=True, default="/static/images/anonymous_user.png")
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -101,57 +145,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
 
         if not self.stripe_user:
-            self.__create_user_stripe()
+            self.create_user_stripe()
         elif self.stripe_user:
-            self.__update_stripe_customer()
+            self.update_stripe_customer()
 
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if self.__delete_stripe_customer():
+        if self.delete_stripe_customer():
             super().delete(*args, **kwargs)
-
-    def __create_user_stripe(self) -> bool:
-        try:
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            description = self.get_full_name()
-            customer = stripe.Customer.create(
-                description=description,
-                name=self.firstname,
-                email=self.email,
-                phone=self.phone,
-            )
-            self.stripe_id = customer.id
-            self.stripe_user = True
-            Customer.sync_from_stripe_data(customer)
-            return customer.id
-        except Exception as e:
-            logger.error("Error: %s " % e.args)
-            self.stripe_user =  False
-            return False
-
-    def __delete_stripe_customer(self) -> bool:
-        try:
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            customer = stripe.Customer.delete(self.stripe_id)
-        except Exception as e:
-            logger.info(e)
-
-        return True
-
-    def __update_stripe_customer(self) -> bool:
-        try:
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            description = self.get_full_name()
-            customer: dict = stripe.Customer.modify(
-                self.stripe_id,
-                description=description,
-                name=self.firstname,
-                email=self.email,
-                phone=self.phone,
-            )
-            Customer.sync_from_stripe_data(customer)
-            return customer.get("id", False)
-        except Exception as e:
-            logger.error("Error: %s " % e.args)
-            return False
