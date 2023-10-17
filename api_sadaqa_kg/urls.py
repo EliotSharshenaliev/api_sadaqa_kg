@@ -1,20 +1,30 @@
-import django.conf
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import path, include
-from api_sadaqa_kg.drf_yasg import urlpatterns as yasg_urlpatterns
 from django.conf import settings
 
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Ваш API",
+        default_version='v1',
+        description="Описание вашего API",
+        terms_of_service="https://www.example.com/terms/",
+        contact=openapi.Contact(email="contact@example.com"),
+        license=openapi.License(name="Ваша лицензия"),
+    ),
+    public=True,
+)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/webhooks/', include("webhooks.urls")),
     path('api/v1/auth/', include("accounts.urls")),
     path('api/v1/catalogs/', include("catalogs.urls")),
     path('api/v1/documents/', include("documents.urls")),
-    path("stripe/", include("djstripe.urls", namespace="djstripe")),
+    path("api/v1/stripe/", include("djstripe.urls", namespace="djstripe")),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('webhooks/', include("stripe_gateway.urls")),
 ]
-
-urlpatterns += yasg_urlpatterns if django.conf.settings.DEBUG else []
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
