@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -22,6 +23,11 @@ class UserRegistrationAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = serializers.UserRegistrationSerializer
 
+    @swagger_auto_schema(
+        operation_summary="Custom Summary",
+        operation_description="Custom Description",
+        tags=["Custom Tag Name", "alerts"]
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 

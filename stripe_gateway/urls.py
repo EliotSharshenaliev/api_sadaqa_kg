@@ -1,6 +1,6 @@
 from django.urls import path
 
-from webhooks.views import CustomerCreatedWebhookView, SubscriptionCreatedWebhookView
+from stripe_gateway.webhooks import CustomerCreatedWebhookView, SubscriptionCreatedWebhookView
 
 urlpatterns = [
     path(r'customer-created/', CustomerCreatedWebhookView.as_view()),

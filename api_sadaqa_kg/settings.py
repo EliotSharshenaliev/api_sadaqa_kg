@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework',
     'djstripe',
-    'webhooks',
     "rest_framework_simplejwt",
     'documents.apps.DocumentsConfig',
     'catalogs.apps.CatalogsConfig',
@@ -170,6 +169,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
+# instagram image api
+
+INSTA_IMAGE_API = "https://www.instagram.com/%s/?__a=1&__d=1"
+
+# Swagger config
+
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -177,9 +183,19 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         }
-    }
+    },
+    'USE_SESSION_AUTH': False,
+    'USE_TOKEN_AUTH': True,
+    'OPERATIONS_SORTER': 'alpha',
+    'SHOW_REQUEST_HEADERS': False,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
+    'DOC_EXPANSION': 'none',
+    'SWAGGER_SETTINGS': {},
+    'VALIDATOR_URL': None,
+    'REFETCH_SCHEMA_ON_LOGOUT': False,
+    'PERSIST_AUTH': True,
+    'APIS_SORTER': 'alpha',
+    'DEFAULT_MODEL_DEPTH': 3,
+    'APP_NAME': 'Your Custom App Name',  # Change this to your desired app name
 }
-
-# instagram image api
-
-INSTA_IMAGE_API = "https://www.instagram.com/%s/?__a=1&__d=1"
