@@ -28,11 +28,10 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework',
     'djstripe',
-    'webhooks',
     "rest_framework_simplejwt",
     'documents.apps.DocumentsConfig',
     'catalogs.apps.CatalogsConfig',
-    'stripe_gateway.apps.StripeGatewayConfig'
+    'stripe_gateway.apps.StripeGatewayConfig',
 ]
 
 MIDDLEWARE = [
@@ -170,16 +169,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    }
-}
-
 # instagram image api
 
 INSTA_IMAGE_API = "https://www.instagram.com/%s/?__a=1&__d=1"
+
+
+# Open API setting
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+        },
+    },
+    'DOC_EXPANSION': 'none',
+    # 'OPERATIONS_SORTER': 'method',
+}
