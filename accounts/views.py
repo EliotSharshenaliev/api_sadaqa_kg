@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -15,13 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 class UserRegistrationAPIView(GenericAPIView):
-    """
-    An endpoint for the client to create a new User.
-    """
-
     permission_classes = (AllowAny,)
     serializer_class = serializers.UserRegistrationSerializer
 
+    @swagger_auto_schema(
+        operation_summary="Регистрация",
+        operation_description="Регистриация пользователя",
+        tags=["Аккаунты"]
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -35,10 +37,6 @@ class UserRegistrationAPIView(GenericAPIView):
 
 
 class UserLogoutAPIView(GenericAPIView):
-    """
-    An endpoint to logout users.
-    """
-
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
@@ -58,21 +56,37 @@ class UserAPIView(
     mixins.DestroyModelMixin,
     GenericAPIView
 ):
-    """
-    Concrete view for retrieving, updating or deleting a user model instance.
-    """
-
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
 
+    @swagger_auto_schema(
+        operation_summary="Профиль",
+        operation_description="",
+        tags=["Аккаунты"]
+    )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary="Профиль",
+        operation_description="",
+        tags=["Аккаунты"]
+    )
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary="Профиль",
+        operation_description="",
+        tags=["Аккаунты"]
+    )
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary="Профиль",
+        operation_description="",
+        tags=["Аккаунты"]
+    )
     def get_object(self):
         return self.request.user
