@@ -18,12 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 class UserManager(BaseUserManager):
-    """
-    Django требует, чтобы кастомные пользователи определяли свой собственный
-    класс Manager. Унаследовавшись от BaseUserManager, мы получаем много того
-    же самого кода, который Django использовал для создания User (для демонстрации).
-    """
-
     def create_user(
             self,
             username,
@@ -34,7 +28,6 @@ class UserManager(BaseUserManager):
             password=None,
             **extra_fields
     ):
-        """ Создает и возвращает пользователя с имэйлом, паролем и именем. """
         if username is None:
             raise TypeError('Users must have a username.')
 
@@ -51,7 +44,6 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email, password=None, **extra_fields):
-        """ Создает и возввращет пользователя с привилегиями суперадмина. """
         if password is None:
             raise TypeError('Superusers must have a password.')
 
@@ -70,7 +62,7 @@ class UserManager(BaseUserManager):
     def get_picture(self, username):
         url = self.get_source_image(username)
 
-        if url is None:
+        if not url:
             return settings.ANONYMOUSE_USER
 
         try:
@@ -127,19 +119,12 @@ class User(AbstractBaseUser, PermissionsMixin, CustomerStripeGateway):
     objects = UserManager()
 
     def __str__(self):
-        """ Строковое представление модели (отображается в консоли) """
         return self.email
 
     def get_full_name(self):
-        """
-        Этот метод требуется Django для таких вещей, как обработка электронной
-        почты. Обычно это имя фамилия пользователя, но поскольку мы не
-        используем их, будем возвращать username.
-        """
         return "%s %s" % (self.firstname, self.lastname)
 
     def get_short_name(self):
-        """ Аналогично методу get_full_name(). """
         return self.username
 
     def save(self, *args, **kwargs):
